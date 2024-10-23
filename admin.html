@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>考试倒计时管理</title>
+    <style>
+        body {
+            padding: 30px;
+            font-family: "Microsoft YaHei", sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #f5f6fa;
+        }
+        
+        h2, h3 {
+            color: #2c3e50;
+        }
+        
+        .form-group {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .form-group h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #34495e;
+        }
+        
+        input[type="text"],
+        input[type="date"] {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+            font-size: 14px;
+            width: 200px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .exam-list {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .exam-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .exam-item .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-delete {
+            background-color: #e74c3c;
+        }
+        
+        .btn-delete:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-edit {
+            background-color: #f39c12;
+        }
+        
+        .btn-edit:hover {
+            background-color: #d68910;
+        }
+    </style>
+</head>
+<body>
+    <h2>考试倒计时管理</h2>
+    
+    <div class="form-group">
+        <h3>添加新考试</h3>
+        <div class="input-group">
+            <label>考试名称</label>
+            <input type="text" id="examName" placeholder="考试名称">
+        </div>
+        <div class="input-group">
+            <label>考试日期</label>
+            <input type="date" id="examDate">
+        </div>
+        <button onclick="addExam()">添加</button>
+    </div>
+    
+    <div class="form-group">
+        <h3>更换背景图片</h3>
+        <input type="file" id="bgImage" accept="image/*">
+        <button onclick="changeBgImage()">更新背景</button>
+    </div>
+    
+    <div class="exam-list" id="examList"></div>
+    
+    <script>
+        function loadExams() {
+            const exams = JSON.parse(localStorage.getItem('exams') || '[]');
+            const container = document.getElementById('examList');
+            container.innerHTML = '<h3>考试列表</h3>';
+            
+            exams.forEach((exam, index) => {
+                const div = document.createElement('div');
+                div.className = 'exam-item';
+                div.innerHTML = `
+                    <span>${exam.name} - ${exam.date}</span>
+                    <div class="button-group">
+                        <button class="btn-edit" onclick="editExam(${index})">编辑</button>
+                        <button class="btn-delete" onclick="deleteExam(${index})">删除</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function addExam() {
+            const name = document.getElementById('examName').value;
+            const date = document.getElementById('examDate').value;
+            
+            if (!name || !date) {
+                alert('请填写完整信息');
+                return;
+            }
+            
+            const exams = JSON.parse(localStorage.getItem('exams') || '[]');
+            exams.push({ name, date });
+            localStorage.setItem('exams', JSON.stringify(exams));
+            
+            loadExams();
+            document.getElementById('examName').value = '';
+            document.getElementById('examDate').value = '';
+        }
+        
+        function editExam(index) {
+            const exams = JSON.parse(localStorage.getItem('exams') || '[]');
+            const exam = exams[index];
+            
+            const newName = prompt('请输入新的考试名称：', exam.name);
+            if (newName === null) return;
+            
+            const newDate = prompt('请输入新的考试日期（YYYY-MM-DD）：', exam.date);
+            if (newDate === null) return;
+            
+            exams[index] = { name: newName, date: newDate };
+            localStorage.setItem('exams', JSON.stringify(exams));
+            loadExams();
+        }
+        
+        function deleteExam(index) {
+            if (confirm('确定要删除这个考试项目吗？')) {
+                const exams = JSON.parse(localStorage.getItem('exams') || '[]');
+                exams.splice(index, 1);
+                localStorage.setItem('exams', JSON.stringify(exams));
+                loadExams();
+            }
+        }
+        
+        function changeBgImage() {
+            const file = document.getElementById('bgImage').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    localStorage.setItem('bgImage', e.target.result);
+                    alert('背景图片已更新');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // 初始化
+        loadExams();
+    </script>
+</body>
+</html>
